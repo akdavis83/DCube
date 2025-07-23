@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artistic 3D Morphing Cube</title>
+    <script src="https://cdn.jsdelivr.net/npm/three @0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs @3.2.1/lib/anime.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+            height: 500vh; /* Long page for scrolling */
+        }
+        
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 100px;
+        }
+        
+        h1 {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #ff00cc, #3333ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(255, 0, 204, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounce 2s infinite;
+        }
+        
+        .scroll-text {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .scroll-arrow {
+            width: 20px;
+            height: 20px;
+            border-right: 2px solid rgba(255, 255, 255, 0.6);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+            transform: rotate(45deg);
+        }
+        
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 0;
+        }
+        
+        .text-block {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+        
+        .text-block.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ff00cc;
+            text-shadow: 0 0 10px rgba(255, 0, 204, 0.3);
+        }
+        
+        p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            color: #3333ff;
+            font-weight: bold;
+        }
+        
+        footer {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .cube-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-20px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cube-canvas"></canvas>
+    
+    <div class="cube-info">
+        <div>Scroll to morph</div>
+        <div id="morph-status">State: Normal</div>
+    </div>
+    
+    <div class="content">
+        <header>
+            <h1>Dimensional Flux</h1>
+            <div class="subtitle">An interactive journey through geometric transformation</div>
+            <div class="scroll-indicator">
+                <div class="scroll-text">Scroll Down</div>
+                <div class="scroll-arrow"></div>
+            </div>
+        </header>
+        
+        <section>
+            <div class="text-block">
+                <h2>The Geometry of Motion</h2>
+                <p>As you scroll through this experience, observe how the <span class="highlight">static cube transforms</span> into increasingly complex forms. The geometry responds to your journey down the page, creating a dialogue between user and algorithm.</p>
+                <p>Each movement represents a different dimension of possibility, bending the rules of Euclidean space through mathematical elegance.</p>
+            </div>
+        </section>
+        
+        <section>
+            <div class="text-block">
+                <h2>Fractured Perspectives</h2>
+                <p>The cube now enters a state of <span class="highlight">quantum superposition</span>, existing in multiple geometric states simultaneously. The clean edges fracture into chaotic beauty, challenging our perception of form.</p>
+                <p>Mathematics meets art in this fluid transition, where predictable patterns dissolve into organic complexity.</p>
+            </div>
+        </section>
+        
+        <section>
+            <div class="text-block">
+                <h2>Return to Order</h2>
+                <p>From chaos emerges a new order. The fragmented pieces reassemble into a structure more complex than the original. This represents the <span class="highlight">evolution of understanding</span>—we cannot return to simple forms once we've witnessed their potential complexity.</p>
+                <p>The journey transforms not just the cube, but the observer as well.</p>
+            </div>
+        </section>
+        
+        <footer>
+            <div class="text-block">
+                <h2>Conclusion</h2>
+                <p>This interactive piece explores the relationship between <span class="highlight">user input and digital form</span>. The cube's transformations are governed by precise mathematical functions, yet their timing and progression are determined by your personal journey through the content.</p>
+                <p>In many ways, this mirrors how our experiences shape our perceptions—the content remains constant, but our path through it creates unique meaning.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Set up Three.js scene
+        const canvas = document.getElementById('cube-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        
+        // Create initial cube geometry
+        let geometry = new THREE.BoxGeometry(2, 2, 2, 10, 10, 10);
+        let material = new THREE.MeshPhongMaterial({ 
+            color: 0x000000,
+            wireframe: true,
+            wireframeLinewidth: 2
+        });
+        
+        // Create gradient for the cube faces
+        const canvasTexture = document.createElement('canvas');
+        canvasTexture.width = 32;
+        canvasTexture.height = 32;
+        const ctx = canvasTexture.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+        gradient.addColorStop(0, '#ff00cc');
+        gradient.addColorStop(1, '#3333ff');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 32, 32);
+        
+        const texture = new THREE.CanvasTexture(canvasTexture);
+        material = new THREE.MeshPhongMaterial({ 
+            map: texture,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+        
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+        backLight.position.set(-1, -1, -1);
+        scene.add(backLight);
+        
+        // Add point lights for extra effect
+        const colors = [0xff00cc, 0x3333ff, 0x00ccff];
+        const lightPositions = [
+            { x: 3, y: 3, z: 3 },
+            { x: -3, y: 3, z: -3 },
+            { x: 3, y: -3, z: -3 }
+        ];
+        
+        lightPositions.forEach((pos, i) => {
+            const pointLight = new THREE.PointLight(colors[i], 0.5, 10);
+            pointLight.position.set(pos.x, pos.y, pos.z);
+            scene.add(pointLight);
+            
+            // Animate lights slowly
+            anime({
+                targets: pointLight.position,
+                x: pos.x * 1.5,
+                y: pos.y * 1.5,
+                z: pos.z * 1.5,
+                duration: 8000 + i * 2000,
+                easing: 'easeInOutSine',
+                direction: 'alternate',
+                loop: true
+            });
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Track scroll progress
+        let scrollProgress = 0;
+        let currentMorphState = 'normal';
+        const morphStatus = document.getElementById('morph-status');
+        
+        // Function to update scroll progress
+        function updateScrollProgress() {
+            scrollProgress = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+            
+            // Update cube based on scroll position
+            updateCubeTransformation(scrollProgress);
+            
+            // Update text blocks visibility
+            updateTextBlocksVisibility();
+        }
+        
+        // Update text blocks visibility based on scroll
+        function updateTextBlocksVisibility() {
+            const textBlocks = document.querySelectorAll('.text-block');
+            textBlocks.forEach(block => {
+                const rect = block.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.75 && rect.bottom > window.innerHeight * 0.25) {
+                    block.classList.add('visible');
+                }
+            });
+        }
+        
+        // Main animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate the cube continuously
+            cube.rotation.x += 0.005;
+            cube.rotation.y += 0.01;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Listen for scroll events
+        window.addEventListener('scroll', updateScrollProgress);
+        
+        // Initial call to set correct state
+        updateScrollProgress();
+        
+        // Morphing configurations
+        const morphTargets = [
+            { name: 'normal', value: 0 },
+            { name: 'twisted', value: 0.33 },
+            { name: 'fractured', value: 0.66 },
+            { name: 'reconstructed', value: 1 }
+        ];
+        
+        // Function to update cube transformation based on scroll
+        function updateCubeTransformation(progress) {
+            // Determine current state
+            let newState = 'normal';
+            if (progress < 0.33) newState = 'normal';
+            else if (progress < 0.66) newState = 'twisted';
+            else if (progress < 0.85) newState = 'fractured';
+            else newState = 'reconstructed';
+            
+            // Update status if state changed
+            if (newState !== currentMorphState) {
+                currentMorphState = newState;
+                morphStatus.textContent = `State: ${currentMorphState}`;
+                
+                // Apply visual effects for state changes
+                document.body.style.setProperty('--state-color', getColorForState(newState));
+            }
+            
+            // Apply morphing based on progress
+            applyMorphing(progress);
+        }
+        
+        // Function to get color for state
+        function getColorForState(state) {
+            switch(state) {
+                case 'twisted': return '#ff66cc';
+                case 'fractured': return '#6666ff';
+                case 'reconstructed': return '#00ccff';
+                default: return '#ffffff';
+            }
+        }
+        
+        // Apply morphing effects based on scroll progress
+        function applyMorphing(progress) {
+            // Reset geometry if needed
+            if (!(geometry instanceof THREE.BoxGeometry)) {
+                scene.remove(cube);
+                geometry = new THREE.BoxGeometry(2, 2, 2, 10, 10, 10);
+                cube.geometry = geometry;
+                scene.add(cube);
+            }
+            
+            // Deform vertices based on progress
+            const positions = geometry.attributes.position;
+            const vertex = new THREE.Vector3();
+            
+            // Base rotation speed increases with scroll
+            cube.rotation.z = progress * Math.PI;
+            
+            // Modify each vertex
+            for (let i = 0; i < positions.count; i++) {
+                vertex.fromBufferAttribute(positions, i);
+                
+                // Calculate influence based on original position
+                const xInfluence = Math.abs(vertex.x / 2);
+                const yInfluence = Math.abs(vertex.y / 2);
+                const zInfluence = Math.abs(vertex.z / 2);
+                
+                // Different deformation effects at different scroll points
+                if (progress < 0.33) {
+                    // Subtle twist
+                    const twistFactor = progress / 0.33;
+                    vertex.x += Math.sin(vertex.y + cube.rotation.x) * 0.5 * twistFactor;
+                    vertex.y += Math.cos(vertex.x + cube.rotation.y) * 0.5 * twistFactor;
+                    
+                } else if (progress < 0.66) {
+                    // Stronger twisting and warping
+                    const twistedProgress = (progress - 0.33) / 0.33;
+                    const turbulence = Math.sin(vertex.x * 3 + cube.rotation.x * 10) * 
+                                     Math.cos(vertex.y * 3 + cube.rotation.y * 10) * 
+                                     Math.sin(vertex.z * 3) * 0.8 * twistedProgress;
+                    
+                    vertex.x += turbulence;
+                    vertex.y += turbulence;
+                    vertex.z += turbulence;
+                    
+                    // Make material more transparent
+                    material.opacity = 0.8 - (twistedProgress * 0.3);
+                    
+                } else if (progress < 0.85) {
+                    // Fracture effect
+                    const fracturingProgress = (progress - 0.66) / 0.19;
+                    // Create the appearance of breaking apart
+                    const noiseScale = 0.5 + fracturingProgress * 1.5;
+                    const offsetX = Math.sin(vertex.y * 5) * Math.cos(vertex.z * 5) * noiseScale * fracturingProgress;
+                    const offsetY = Math.sin(vertex.x * 5) * Math.cos(vertex.z * 5) * noiseScale * fracturingProgress;
+                    const offsetZ = Math.sin(vertex.x * 5) * Math.cos(vertex.y * 5) * noiseScale * fracturingProgress;
+                    
+                    vertex.x += offsetX;
+                    vertex.y += offsetY;
+                    vertex.z += offsetZ;
+                    
+                    material.opacity = 0.5 - (fracturingProgress * 0.2);
+                    
+                } else {
+                    // Reconstructing into new form
+                    const reconstructProgress = (progress - 0.85) / 0.15;
+                    // Transform into a more complex structure
+                    
+                    // First, create a more subdivided geometry if not already done
+                    if (geometry.parameters && geometry.parameters.widthSegments < 20) {
+                        scene.remove(cube);
+                        geometry = new THREE.BoxGeometry(2, 2, 2, 20, 20, 20);
+                        cube.geometry = geometry;
+                        positions = geometry.attributes.position;
+                        scene.add(cube);
+                    }
+                    
+                    // Apply wave-like reconstruction
+                    const pulse = Math.sin(cube.rotation.x * 5) * 0.5 + 0.5;
+                    const waveIntensity = 1 + reconstructProgress * 2;
+                    
+                    vertex.x += Math.sin(vertex.y * 4 + cube.rotation.x * 10) * waveIntensity * pulse * reconstructProgress;
+                    vertex.y += Math.sin(vertex.z * 4 + cube.rotation.y * 10) * waveIntensity * pulse * reconstructProgress;
+                    vertex.z += Math.sin(vertex.x * 4 + cube.rotation.z * 10) * waveIntensity * pulse * reconstructProgress;
+                    
+                    material.opacity = 0.3 + (reconstructProgress * 0.5);
+                }
+                
+                // Update the position
+                positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
+            }
+            
+            // Mark the geometry as needing update
+            positions.needsUpdate = true;
+            
+            // Adjust camera slightly based on progress for dynamic feel
+            camera.position.z = 5 + Math.sin(progress * Math.PI) * 2;
+            camera.lookAt(0, 0, 0);
+        }
+        
+        // Initialize text blocks visibility
+        updateTextBlocksVisibility();
+    </script>
+</body>
+</html>
